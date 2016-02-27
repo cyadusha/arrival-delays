@@ -1,0 +1,95 @@
+---
+title: "arrival delays"
+author: "Yadu"
+date: "February 27, 2016"
+output: html_document
+---
+
+First we load the csv data into R from Github. We also load the required packages.
+
+```{r}
+library(stringr)
+library(RCurl)
+library(dplyr)
+library(tidyr)
+url = "https://raw.githubusercontent.com/cyadusha/arrival-delays/master/arrival%20delays.csv"
+x = getURL(url)
+arrivaldelays = read.csv(file = textConnection(x), header = TRUE)
+```
+
+Then, we remove the row that has null values using the command below.
+
+```{r}
+arrivaldelays = arrivaldelays[complete.cases(arrivaldelays), ]
+```
+
+We also replace the blank below Alaska with Alaska and the blank below AM West with AM West.
+
+```{r}
+arrivaldelays[2,1] = "Alaska"
+arrivaldelays[4,1] = "AM West"
+```
+
+We can also rename two of the columns in the original dataset as follows.
+
+```{r}
+colnames(arrivaldelays)[1] = "Airline"
+colnames(arrivaldelays)[2] = "Status"
+```
+
+We now use the gather command from the tidyr package to collect the names of the last 5 columns into one column.
+
+```{r}
+arrivaldelays = arrivaldelays %>%
+  gather(Destination, Number_of_Arrivals, Los.Angeles:Seattle, na.rm = T)
+```
+
+Because a punctuation mark exists in some of the destinations, we replace each punctuation mark with a space.
+
+```{r}
+arrivaldelays$Destination = str_replace_all(arrivaldelays$Destination, "[[:punct:]]", " ")
+```
+
+Because each of the arrival statuses will soon be the names of the two columns in each of our tables, to avoid spaces, we replace "on time" with one word that would suffice. That word is "punctual".
+
+```{r}
+arrivaldelays$Status = str_replace_all(arrivaldelays$Status, "on time", "punctual")
+```
+
+Now we use the spread command in the tidyr package to organize the number of arrivals into the two new columns created which are "delayed" and "punctual".
+
+```{r}
+arrivaldelays = arrivaldelays %>%
+  spread(Status, Number_of_Arrivals)
+arrivaldelays
+```
+
+To facilitate the comparison of the arrival delays for each airline, we split our table into two tables as follows by using the subset command.
+
+```{r}
+Alaskaarrivaldelays = subset(arrivaldelays, Airline == "Alaska", select = -Airline)
+AMWestarrivaldelays = subset(arrivaldelays, Airline == "AM West", select = -Airline)
+Alaskaarrivaldelays
+AMWestarrivaldelays
+```
+
+Then, we add a new column to each table and title it performance. It is computed as the percentage of flights that arrive on time. 
+
+```{r}
+Alaskaarrivaldelays$performance = round((Alaskaarrivaldelays$punctual/(Alaskaarrivaldelays$punctual + Alaskaarrivaldelays$delayed))*100, 0)
+AMWestarrivaldelays$performance = round((AMWestarrivaldelays$punctual/(AMWestarrivaldelays$punctual + AMWestarrivaldelays$delayed))*100, 0)
+Alaskaarrivaldelays
+AMWestarrivaldelays
+```
+
+We notice that for each destination, Alaska Airlines has a higher percentage of punctual arrivals as compared to AM West Airlines. But yet, the percentage of punctual arrivals for each city is much greater than 50.
+
+We now compute the mean performance for each airline as follows.
+
+```{r}
+round(mean(Alaskaarrivaldelays$performance), 0)
+round(mean(AMWestarrivaldelays$performance), 0)
+```
+
+It turns out that each airline has an average of at least 80% of punctual arrivals because the average percentage of punctual arrivals for each airline falls between 80 and 90. However, Alaska Airlines has a better performance because 89% of its flights arrive punctually. On the other hand, for AM West Airlines only 82% of its flights arrive punctually. 
+
