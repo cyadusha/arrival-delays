@@ -64,32 +64,29 @@ arrivaldelays = arrivaldelays %>%
 arrivaldelays
 ```
 
-To facilitate the comparison of the arrival delays for each airline, we split our table into two tables as follows by using the subset command.
+To facilitate the comparison of the arrival delays for each airline, we add a new column which computes the percentage of punctual flights in each city for each airline.  
 
 ```{r}
-Alaskaarrivaldelays = subset(arrivaldelays, Airline == "Alaska", select = -Airline)
-AMWestarrivaldelays = subset(arrivaldelays, Airline == "AM West", select = -Airline)
-Alaskaarrivaldelays
-AMWestarrivaldelays
+arrivaldelays$percentage = (arrivaldelays$punctual/(arrivaldelays$delayed + arrivaldelays$punctual))*100
 ```
 
-Then, we add a new column to each table and title it performance. It is computed as the percentage of flights that arrive on time. 
+```{r}
+arrivaldelays
+```
+
+Now we use the group_by command to compute the mean percentage of punctual arrivals for each flight.
 
 ```{r}
-Alaskaarrivaldelays$performance = round((Alaskaarrivaldelays$punctual/(Alaskaarrivaldelays$punctual + Alaskaarrivaldelays$delayed))*100, 0)
-AMWestarrivaldelays$performance = round((AMWestarrivaldelays$punctual/(AMWestarrivaldelays$punctual + AMWestarrivaldelays$delayed))*100, 0)
-Alaskaarrivaldelays
-AMWestarrivaldelays
+arrivalcomparison = arrivaldelays %>%
+  group_by(Airline) %>% summarize(percentage = round(mean(percentage), 0))
+```
+
+```{r}
+arrivalcomparison
 ```
 
 We notice that for each destination, Alaska Airlines has a higher percentage of punctual arrivals as compared to AM West Airlines. But yet, the percentage of punctual arrivals for each city is much greater than 50.
 
-We now compute the mean performance for each airline as follows.
-
-```{r}
-round(mean(Alaskaarrivaldelays$performance), 0)
-round(mean(AMWestarrivaldelays$performance), 0)
-```
 
 It turns out that each airline has an average of at least 80% of punctual arrivals because the average percentage of punctual arrivals for each airline falls between 80 and 90. However, Alaska Airlines has a better performance because 89% of its flights arrive punctually. On the other hand, for AM West Airlines only 82% of its flights arrive punctually. 
 

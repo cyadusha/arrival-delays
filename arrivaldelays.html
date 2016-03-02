@@ -125,46 +125,31 @@ arrivaldelays</code></pre>
 ## 8  AM West     San Diego      65      383
 ## 9  AM West San Francisco     129      320
 ## 10 AM West       Seattle      61      201</code></pre>
-<p>To facilitate the comparison of the arrival delays for each airline, we split our table into two tables as follows by using the subset command.</p>
-<pre class="r"><code>Alaskaarrivaldelays = subset(arrivaldelays, Airline == &quot;Alaska&quot;, select = -Airline)
-AMWestarrivaldelays = subset(arrivaldelays, Airline == &quot;AM West&quot;, select = -Airline)
-Alaskaarrivaldelays</code></pre>
-<pre><code>##     Destination delayed punctual
-## 1   Los Angeles      62      497
-## 2       Phoenix      12      221
-## 3     San Diego      20      212
-## 4 San Francisco     102      503
-## 5       Seattle     305     1841</code></pre>
-<pre class="r"><code>AMWestarrivaldelays</code></pre>
-<pre><code>##      Destination delayed punctual
-## 6    Los Angeles     117      694
-## 7        Phoenix     415     4840
-## 8      San Diego      65      383
-## 9  San Francisco     129      320
-## 10       Seattle      61      201</code></pre>
-<p>Then, we add a new column to each table and title it performance. It is computed as the percentage of flights that arrive on time.</p>
-<pre class="r"><code>Alaskaarrivaldelays$performance = round((Alaskaarrivaldelays$punctual/(Alaskaarrivaldelays$punctual + Alaskaarrivaldelays$delayed))*100, 0)
-AMWestarrivaldelays$performance = round((AMWestarrivaldelays$punctual/(AMWestarrivaldelays$punctual + AMWestarrivaldelays$delayed))*100, 0)
-Alaskaarrivaldelays</code></pre>
-<pre><code>##     Destination delayed punctual performance
-## 1   Los Angeles      62      497          89
-## 2       Phoenix      12      221          95
-## 3     San Diego      20      212          91
-## 4 San Francisco     102      503          83
-## 5       Seattle     305     1841          86</code></pre>
-<pre class="r"><code>AMWestarrivaldelays</code></pre>
-<pre><code>##      Destination delayed punctual performance
-## 6    Los Angeles     117      694          86
-## 7        Phoenix     415     4840          92
-## 8      San Diego      65      383          85
-## 9  San Francisco     129      320          71
-## 10       Seattle      61      201          77</code></pre>
+<p>To facilitate the comparison of the arrival delays for each airline, we add a new column which computes the percentage of punctual flights in each city for each airline.</p>
+<pre class="r"><code>arrivaldelays$percentage = (arrivaldelays$punctual/(arrivaldelays$delayed + arrivaldelays$punctual))*100</code></pre>
+<pre class="r"><code>arrivaldelays</code></pre>
+<pre><code>##    Airline   Destination delayed punctual percentage
+## 1   Alaska   Los Angeles      62      497   88.90877
+## 2   Alaska       Phoenix      12      221   94.84979
+## 3   Alaska     San Diego      20      212   91.37931
+## 4   Alaska San Francisco     102      503   83.14050
+## 5   Alaska       Seattle     305     1841   85.78751
+## 6  AM West   Los Angeles     117      694   85.57337
+## 7  AM West       Phoenix     415     4840   92.10276
+## 8  AM West     San Diego      65      383   85.49107
+## 9  AM West San Francisco     129      320   71.26949
+## 10 AM West       Seattle      61      201   76.71756</code></pre>
+<p>Now we use the group_by command to compute the mean percentage of punctual arrivals for each flight.</p>
+<pre class="r"><code>arrivalcomparison = arrivaldelays %&gt;%
+  group_by(Airline) %&gt;% summarize(percentage = round(mean(percentage), 0))</code></pre>
+<pre class="r"><code>arrivalcomparison</code></pre>
+<pre><code>## Source: local data frame [2 x 2]
+## 
+##   Airline percentage
+##    (fctr)      (dbl)
+## 1  Alaska         89
+## 2 AM West         82</code></pre>
 <p>We notice that for each destination, Alaska Airlines has a higher percentage of punctual arrivals as compared to AM West Airlines. But yet, the percentage of punctual arrivals for each city is much greater than 50.</p>
-<p>We now compute the mean performance for each airline as follows.</p>
-<pre class="r"><code>round(mean(Alaskaarrivaldelays$performance), 0)</code></pre>
-<pre><code>## [1] 89</code></pre>
-<pre class="r"><code>round(mean(AMWestarrivaldelays$performance), 0)</code></pre>
-<pre><code>## [1] 82</code></pre>
 <p>It turns out that each airline has an average of at least 80% of punctual arrivals because the average percentage of punctual arrivals for each airline falls between 80 and 90. However, Alaska Airlines has a better performance because 89% of its flights arrive punctually. On the other hand, for AM West Airlines only 82% of its flights arrive punctually.</p>
 
 
